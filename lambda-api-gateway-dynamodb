@@ -1,0 +1,70 @@
+import json
+import boto3
+import urllib3
+import boto3
+from decimal import Decimal
+
+def float_to_decimal(value):
+    if isinstance(value, float):
+        return Decimal(str(value))
+http = urllib3.PoolManager()
+dynamodb=boto3.resource('dynamodb')
+table=dynamodb.Table('truckdata')
+def lambda_handler(event, context):
+    # TODO implement
+    print(event)
+    api_url="https://hhkqiyb79e.execute-api.us-east-1.amazonaws.com/truck_data"
+    response = http.request('GET', api_url)
+    data = response.data.decode('utf-8')
+    d1=json.loads(data)
+    fid=d1[0]
+    tid=fid["truck_id"]
+    print('trst',fid["vehicle_health_and_maintenance"]["transmission_status"])
+    print('lat is',fid["gps_location"]["latitude"])
+    tst=fid["timestamp"]
+    lid=float_to_decimal(fid["gps_location"]["latitude"])
+    lod=float_to_decimal(fid["gps_location"]["longitude"])
+    alid=float_to_decimal(fid["gps_location"]["altitude"])
+    speed=float_to_decimal(fid["gps_location"]["speed"])
+    veh_speed=fid["vehicle_speed"]
+    eng_rpm=(fid["engine_diagnostics"]["engine_rpm"])
+    odom_read=float_to_decimal(fid["odometer_reading"])
+    fuel_level=float_to_decimal(fid["engine_diagnostics"]["fuel_level"])
+    temp=float_to_decimal(fid["engine_diagnostics"]["temperature"])
+    oil_press=float_to_decimal(fid["engine_diagnostics"]["oil_pressure"])
+    batt_volt=float_to_decimal(fid["engine_diagnostics"]["battery_voltage"])
+    fuel_cons=float_to_decimal(fid['fuel_consumption'])
+    brake_status=fid["vehicle_health_and_maintenance"]["brake_status"]
+    fr_left=float_to_decimal(fid["vehicle_health_and_maintenance"]["tire_pressure"]["front_left"])
+    fr_right=float_to_decimal(fid["vehicle_health_and_maintenance"]["tire_pressure"]["front_right"])
+    rr_left=float_to_decimal(fid["vehicle_health_and_maintenance"]["tire_pressure"]["rear_left"])
+    rr_right=float_to_decimal(fid["vehicle_health_and_maintenance"]["tire_pressure"]["rear_right"])
+    tr_st=fid["vehicle_health_and_maintenance"]["transmission_status"]
+    temp1=float_to_decimal(fid["environmental_conditions"]["temperature"])
+    humid=float_to_decimal(fid["environmental_conditions"]["humidity"])
+    atmo_pres=float_to_decimal(fid["environmental_conditions"]["atmospheric_pressure"])
+    res=table.put_item(Item={
+        "truck_id":tid,
+        "altitude":alid,
+        "atmospheric_pressure":atmo_pres,
+        "brake_status":brake_status,
+        "engine_rpm":eng_rpm,
+        "front_left":fr_left,
+        "front_right":fr_right,
+        "rear_left":rr_left,
+        "rear_right":rr_right,
+        "fuel_consumption":fuel_cons,
+        "fuel_level":fuel_level,
+        "humidity":humid,
+        "latitude":lid,
+        "longitude":lod,
+        "odometer_reading":odom_read,
+        "vehicle_speed":veh_speed,
+        "temperature":temp,
+        "temperature1":temp1,
+        "transmission_status":tr_st,
+        "timestamp":tst,
+        'oil_press':oil_press,
+        "bt_voltage":batt_volt
+    })
+    return res
